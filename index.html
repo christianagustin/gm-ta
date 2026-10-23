@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Global Mode TA Form</title>
+<style>
+:root{--navy:#14213d;--green:#1f9d63;--green-d:#177a4d;--bg:#f4f6fa;--card:#fff;--line:#dfe4ee;--txt:#1b2333;--mut:#667086;--red:#d64545;--amber:#e8a317;--lock:#eef1f6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--navy);color:#fff;padding:14px 16px 0;position:sticky;top:0;z-index:20}
+.wrap{max-width:820px;margin:0 auto}
+.who{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between}
+.who h1{font-size:18px;margin:0}
+.who small{color:#b9c3dc}
+.links a{display:inline-block;margin-left:6px;padding:5px 10px;border-radius:14px;background:#2a3a63;color:#fff;text-decoration:none;font-size:13px}
+.links a:hover{background:var(--green)}
+.tabs{display:flex;gap:4px;margin-top:10px}
+.tab{flex:1;text-align:center;padding:10px 6px;background:#22315a;color:#cdd6ee;border:0;border-radius:8px 8px 0 0;font:600 14px inherit;cursor:pointer}
+.tab.on{background:var(--bg);color:var(--navy)}
+.tab .pill{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:10px;font-size:12px;background:var(--red);color:#fff}
+.tab .pill.ok{background:var(--green)}
+main{max-width:820px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 12px;font-size:15px;color:var(--navy);text-transform:uppercase;letter-spacing:.04em}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+@media(max-width:620px){.grid{grid-template-columns:1fr}}
+.f.full{grid-column:1/-1}
+label{display:block;font-weight:600;font-size:13px;margin-bottom:4px}
+label .req{color:var(--red)}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:var(--txt)}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--green);outline-offset:0}
+.f.missing input,.f.missing select,.f.missing textarea,.f.missing .chips{border-color:var(--red);background:#fff7f7}
+.f.missing label::after{content:" needed";color:var(--red);font-weight:500;font-size:12px}
+.f.locked input,.f.locked select,.f.locked textarea{background:var(--lock);color:#4a5468}
+.hint{font-size:12px;color:var(--mut);margin-top:3px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px;border:1px solid var(--line);border-radius:8px}
+.chip{padding:5px 11px;border:1px solid var(--line);border-radius:14px;cursor:pointer;font-size:13px;background:#fff;user-select:none}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff}
+.f.locked .chip{pointer-events:none;opacity:.7}
+.bar{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px;z-index:15}
+.bar .wrap{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+button.primary{background:var(--green);color:#fff;border:0;border-radius:8px;padding:11px 22px;font:700 15px inherit;cursor:pointer}
+button.primary:hover{background:var(--green-d)}
+button.primary:disabled{background:#9db8aa;cursor:not-allowed}
+button.ghost{background:transparent;border:1px solid var(--line);border-radius:8px;padding:9px 14px;font:600 13px inherit;cursor:pointer;color:var(--navy)}
+button.warn{border-color:var(--amber);color:#8a5a00;background:#fff8e6}
+button.warn:hover{background:#ffefc2}
+button.warn:disabled{opacity:.6;cursor:not-allowed}
+.status{font-size:13px;color:var(--mut)}
+.msg{padding:12px 14px;border-radius:8px;margin-bottom:14px;font-size:14px}
+.msg.err{background:#fdecec;color:#8c1f1f;border:1px solid #f3bcbc}
+.msg.ok{background:#e8f6ee;color:#15613d;border:1px solid #b7e1c8}
+.msg.info{background:#eaf1fb;color:#1d3d73;border:1px solid #c5d6f1}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:6px}
+.sum div{background:var(--bg);border-radius:8px;padding:8px 10px}
+.sum b{display:block;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+#loading{text-align:center;padding:60px 0;color:var(--mut)}
+.hidden{display:none!important}
+.tab .pill.warn{background:var(--amber);color:#3d2a00}
+#toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);z-index:50;width:min(420px,calc(100% - 32px));background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(20,33,61,.28);padding:22px 20px 18px;text-align:center;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
+#toast.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+#toast .ic{width:52px;height:52px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;background:var(--green)}
+#toast.na .ic{background:var(--amber)}
+#toast.err .ic{background:var(--red)}
+#toast h3{margin:0 0 6px;font-size:18px;color:var(--navy)}
+#toast p{margin:0 0 14px;font-size:14px;color:var(--mut)}
+#toast button{background:var(--navy);color:#fff;border:0;border-radius:8px;padding:10px 26px;font:700 14px inherit;cursor:pointer}
+#toastbg{position:fixed;inset:0;background:rgba(20,33,61,.35);z-index:49;opacity:0;pointer-events:none;transition:opacity .18s}
+#toastbg.show{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="who"><div><h1 id="name">Loading...</h1><small id="sub"></small></div><div class="links" id="links"></div></div>
+  <div class="tabs">
+    <button class="tab on" id="tab-int" type="button">1. Interview <span class="pill ok" id="pill-int"></span></button>
+    <button class="tab" id="tab-post" type="button">2. Post-interview <span class="pill ok" id="pill-post"></span></button>
+  </div>
+</div></header>
+<main>
+  <div id="loading">Loading record...</div>
+  <div id="banner"></div>
+  <div id="form" class="hidden"></div>
+</main>
+<div id="toastbg"></div><div id="toast" role="alertdialog" aria-live="assertive"><div class="ic" id="toast-ic">&#10003;</div><h3 id="toast-h"></h3><p id="toast-p"></p><button type="button" id="toast-ok">OK</button></div>
+<div class="bar hidden" id="bar"><div class="wrap">
+  <span class="status" id="status"></span>
+  <span><button class="ghost" id="jump" type="button">Jump to next missing</button> <button class="ghost warn hidden" id="noans" type="button">No answer</button> <button class="primary" id="save" type="button">Save</button></span>
+</div></div>
+
+<script>
+const API = window.TA_API_BASE || 'APPS_SCRIPT_EXEC_URL';
+const qs = new URLSearchParams(location.search);
+const ctx = { leadId: qs.get('leadId') || '', gid: qs.get('gid') || '', ssid: qs.get('ssid') || '' };
+
+const YN = ['Yes','No','N/A'], FREQ = ['Never','Occasionally','Weekly','Daily','N/A'];
+const FIELDS = [
+ // Interview tab
+ {k:'Surname',label:'Last Name',s:'Candidate details',tab:'int'},
+ {k:'First Name',s:'Candidate details',tab:'int'},
+ {k:'Middle Name',s:'Candidate details',tab:'int'},
+ {k:'Address',s:'Candidate details',tab:'int',full:1},
+ {k:'Contact Number',s:'Candidate details',tab:'int'},
+ {k:'Age',s:'Candidate details',tab:'int',t:'number'},
+ {k:'Birthdate',label:'Birthday',s:'Candidate details',tab:'int',t:'date'},
+ {k:'Civil Status',s:'Candidate details',tab:'int',t:'select',o:['Single','Married','Widowed','Separated']},
+ {k:'Gender',s:'Candidate details',tab:'int',t:'select',o:['Male','Female']},
+ {k:'Position Applied For',label:'Position Applied',s:'Candidate details',tab:'int'},
+ {k:'Email Address',s:'Candidate details',tab:'int'},
+ {k:'Educational Background',s:'Personal',tab:'int'},
+ {k:'No. of Dependents',s:'Personal',tab:'int',t:'number',h:'Enter 0 if none'},
+ {k:'Tattoo Visibility',s:'Tattoos',tab:'int',t:'select',o:['None','Concealable','Visible - minor','Visible - prominent','N/A'],r:1},
+ {k:'Tattoo Details',s:'Tattoos',tab:'int',h:'Describe, if any'},
+ {k:'Tattoo Location',s:'Tattoos',tab:'int',t:'chips',o:['Arm','Forearm','Hand','Neck','Chest','Back','Leg','Foot','Face','Other'],full:1},
+ {k:'Smoking',s:'Lifestyle',tab:'int',t:'select',o:FREQ,r:1},
+ {k:'Alcohol',s:'Lifestyle',tab:'int',t:'select',o:FREQ,r:1},
+ {k:'Earliest Start Date',s:'Availability and work',tab:'int',t:'date'},
+ {k:'Willing to Relocate',s:'Availability and work',tab:'int',t:'select',o:['Yes','No','Depends','N/A'],r:1},
+ {k:'Shift Flexibility',s:'Availability and work',tab:'int',t:'select',o:['Any','Day only','Night only','N/A'],r:1},
+ {k:'Relevant Experience',s:'Availability and work',tab:'int',t:'select',o:['None','<1yr','1-3yrs','3+yrs','N/A'],r:1},
+ {k:'Expected Salary',s:'Availability and work',tab:'int',h:'e.g. 18000'},
+ {k:'Own Transportation',s:'Availability and work',tab:'int',t:'select',o:YN,r:1},
+ {k:'TA Assessment',s:'Assessment',tab:'int',t:'select',o:['Recommended','Recommended with reservations','Pooling','Not recommended','Failed','N/A'],r:1},
+ {k:'TA Notes',s:'Assessment',tab:'int',t:'textarea',full:1},
+ {k:'Detachment',s:'Assessment',tab:'int',moves:1},
+ {k:'Date of Scheduled Orientation',s:'Assessment',tab:'int',t:'date',moves:1},
+ // Post-interview tab
+ {k:'Endorsement Status',s:'Endorsement',tab:'post',t:'select',o:['Pending orientation','Attended orientation','Endorsed','No-show','Did not proceed']},
+ {k:'Date Endorsed',s:'Endorsement',tab:'post',t:'date',h:'Auto-filled with today if you choose Endorsed and leave this blank'},
+ {k:'Detachment',s:'Deployment',tab:'post'},
+ {k:'Date of Scheduled Orientation',s:'Deployment',tab:'post',t:'date'},
+ {k:'Update Note',s:'Notes',tab:'post',t:'textarea',full:1,note:1,h:'Optional. Added to TA Notes with today\'s date.'}
+];
+
+let rec = null, state = null, vals = {}, tab = 'int', dirty = false;
+let wantInterview = false;   // TA started an actual interview on a No Answer lead (shows the red 'needed' hints)
+let naDoneThisVisit = false; // No answer already logged on this page view (blocks accidental double taps)
+const $ = id => document.getElementById(id);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fid = (f, i) => 'f_' + f.tab + '_' + i;
+function popup(kind, title, text){
+  const t = $('toast'); t.className = kind === 'ok' ? '' : kind;
+  $('toast-ic').innerHTML = kind === 'err' ? '!' : (kind === 'na' ? '&#9742;' : '&#10003;');
+  $('toast-h').textContent = title; $('toast-p').textContent = text || '';
+  t.classList.add('show'); $('toastbg').classList.add('show'); setTimeout(() => $('toast-ok').focus(), 50);
+}
+function closePopup(){ $('toast').classList.remove('show'); $('toastbg').classList.remove('show'); }
+const isNA = () => !state.interviewed && (state.noAnswer || String(rec['Status']||'').toLowerCase()==='no answer');
+const calm = () => tab==='int' && isNA() && !wantInterview;   // No Answer lead, nothing to fill yet
+
+function toIsoDate(v){
+  v = String(v||'').trim(); if(!v) return '';
+  if(/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0,10);
+  const m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m) return m[3]+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0');
+  const d = new Date(v); return isNaN(d) ? '' : d.toISOString().slice(0,10);
+}
+const normalize = (f, v) => f.t === 'date' ? toIsoDate(v) : String(v == null ? '' : v);
+const draftKey = () => 'ta-draft:' + ctx.ssid + ':' + ctx.leadId;
+
+function isLocked(f){
+  if (f.tab === 'int') return state.interviewed;               // interview answers lock after submit
+  return !state.interviewed;                                     // post tab opens after the interview
+}
+const needsValue = f => f.r || (f.k==='Date Endorsed' && vals['Endorsement Status']==='Endorsed');
+const isMissing = f => needsValue(f) && !String(vals[f.k] ?? '').trim() && !isLocked(f);
+
+// Apps Script backend: GET ?action=ta-record&..., POST as text/plain (avoids a CORS preflight Apps Script cannot answer).
+async function api(path, opts){
+  const [name, query] = path.slice(1).split('?');
+  const url = API + '?action=' + name + (query ? '&' + query : '');
+  if (opts && opts.headers) opts = Object.assign({}, opts, {headers:{'Content-Type':'text/plain;charset=utf-8'}});
+  let r;
+  try { r = await fetch(url, opts); } catch(e){ return {ok:false,error:'Network error. Check your connection and try again.'}; }
+  let j; try { j = await r.json(); } catch(e){ j = {ok:false,error:'Unexpected response ('+r.status+')'}; }
+  return j;
+}
+
+async function load(noScroll){
+  if(!ctx.leadId || !ctx.ssid){ return fail('This link is missing its details. Please open the link from the sheet again.'); }
+  const j = await api('/ta-record?leadId='+encodeURIComponent(ctx.leadId)+'&gid='+encodeURIComponent(ctx.gid)+'&ssid='+encodeURIComponent(ctx.ssid));
+  if(!j.ok) return fail(j.error || 'Could not load this record.');
+  rec = j.record; state = j.state; vals = {};
+  FIELDS.forEach(f => { if(!(f.k in vals)) vals[f.k] = f.note ? '' : normalize(f, rec[f.k]); });
+  restoreDraft();
+  $('loading').classList.add('hidden');
+  header(j.candidate);
+  const want = new URLSearchParams(location.search).get('tab');
+  tab = (want==='int'||want==='post') ? want : (state.interviewed ? 'post' : 'int');
+  render(!noScroll);
+}
+function fail(msg){ $('loading').classList.add('hidden'); $('banner').innerHTML = '<div class="msg err">'+esc(msg)+'</div>'; }
+
+function header(c){
+  $('name').textContent = c.name || ctx.leadId;
+  $('sub').textContent = [c.position, c.contact, ctx.leadId].filter(Boolean).join(' | ');
+  const L = $('links'); L.innerHTML = '';
+  if(c.fb){ const a=el('a',null,'Facebook'); a.href=c.fb; a.target='_blank'; a.rel='noopener'; L.appendChild(a); }
+  if(c.messenger){ const a=el('a',null,'Messenger'); a.href=c.messenger; a.target='_blank'; a.rel='noopener'; L.appendChild(a); }
+}
+
+function restoreDraft(){
+  try{
+    const d = JSON.parse(localStorage.getItem(draftKey())||'null'); if(!d) return;
+    FIELDS.forEach(f => { if(!isLocked(f) && d[f.k] != null && String(d[f.k]) !== '' && !String(vals[f.k]||'').trim()) vals[f.k] = d[f.k]; });
+  }catch(e){}
+}
+function saveDraft(){ try{ localStorage.setItem(draftKey(), JSON.stringify(vals)); }catch(e){} }
+
+function render(scroll){
+  const root = $('form'); root.innerHTML = ''; root.classList.remove('hidden'); $('bar').classList.remove('hidden');
+  $('tab-int').classList.toggle('on', tab==='int'); $('tab-post').classList.toggle('on', tab==='post');
+  const b = $('banner'); b.innerHTML = '';
+  if(tab==='int' && state.interviewed) b.innerHTML = '<div class="msg info">This interview is submitted and locked. Use the Post-interview tab for endorsement, detachment and orientation.</div>';
+  if(tab==='int' && isNA()) b.innerHTML = '<div class="msg info"><b>No answer logged ('+(state.attempts||1)+' call'+((state.attempts||1)>1?'s':'')+' so far).</b> Nothing else to fill in for now. When the applicant responds, complete the interview below and tap Submit interview. If they still do not answer on your next try, tap No answer again.</div>';
+  if(tab==='post' && !state.interviewed) b.innerHTML = '<div class="msg info">Complete and submit the interview first. This tab opens after that.</div>';
+  if(tab==='post' && state.interviewed){
+    const s = el('div','sum');
+    [['Assessment',rec['TA Assessment']],['Stage',state.stage],['Calls logged',String(state.attempts||0)],['Last updated',rec['Last Updated']||'']].forEach(([k,v])=>s.appendChild(el('div',null,'<b>'+k+'</b>'+esc(v||'-'))));
+    root.appendChild(s);
+  }
+  const sections = [];
+  FIELDS.forEach((f,i)=>{ if(f.tab!==tab) return; let s = sections.find(x=>x.name===f.s); if(!s){ s={name:f.s,items:[]}; sections.push(s);} s.items.push([f,i]); });
+  sections.forEach(sec=>{
+    const card = el('div','card'); card.appendChild(el('h2',null,esc(sec.name)));
+    const g = el('div','grid');
+    sec.items.forEach(([f,i])=> g.appendChild(field(f,i)));
+    card.appendChild(g); root.appendChild(card);
+  });
+  refresh();
+  if(scroll && !calm()) setTimeout(()=>jumpMissing(true),80);
+}
+
+function field(f,i){
+  const w = el('div','f'+(f.full?' full':'')+(isLocked(f)?' locked':'')); w.id = fid(f,i); w.dataset.k = f.k;
+  w.appendChild(el('label',null,esc(f.label||f.k)+(f.r?' <span class="req">*</span>':'')));
+  const dis = isLocked(f) || f.moves && state.interviewed;
+  let inp;
+  if(f.t==='select'){
+    inp = el('select'); inp.appendChild(new Option('Select...',''));
+    f.o.forEach(o=>inp.appendChild(new Option(o,o)));
+    if(vals[f.k] && !f.o.includes(vals[f.k])) inp.appendChild(new Option(vals[f.k],vals[f.k]));
+    inp.value = vals[f.k] || '';
+  } else if(f.t==='textarea'){ inp = el('textarea'); inp.value = vals[f.k]||''; }
+  else if(f.t==='chips'){
+    inp = el('div','chips'); const cur = String(vals[f.k]||'').split(',').map(x=>x.trim()).filter(Boolean);
+    const all = Array.from(new Set(f.o.concat(cur)));
+    all.forEach(o=>{ const c=el('span','chip'+(cur.includes(o)?' on':''),esc(o)); c.onclick=()=>{ c.classList.toggle('on'); vals[f.k]=Array.from(inp.querySelectorAll('.chip.on')).map(x=>x.textContent).join(', '); touched(); }; inp.appendChild(c); });
+  } else { inp = el('input'); inp.type = f.t==='number'?'number':(f.t==='date'?'date':'text'); if(f.t==='number') inp.min=0; inp.value = vals[f.k]||''; }
+  if(f.t!=='chips'){ inp.disabled = !!dis; ['input','change'].forEach(ev=>inp.addEventListener(ev,()=>{ vals[f.k]=inp.value; touched(); })); }
+  w.appendChild(inp);
+  if(f.h) w.appendChild(el('div','hint',esc(f.h)));
+  return w;
+}
+function touched(){ dirty = true; saveDraft(); refresh(); }
+
+function counts(){
+  const miss = FIELDS.filter(f=>f.tab==='int' && isMissing(f)).length;
+  return {miss};
+}
+function refresh(){
+  document.querySelectorAll('#form .f').forEach(w=>{
+    const f = FIELDS.find((x,i)=>fid(x,i)===w.id); if(!f) return;
+    w.classList.toggle('missing', !calm() && isMissing(f));
+  });
+  const {miss} = counts();
+  const p = $('pill-int');
+  if (calm()) { p.textContent = 'no answer'; p.className = 'pill warn'; }
+  else { p.textContent = state.interviewed ? 'done' : (miss ? miss+' missing' : 'ready'); p.className = 'pill'+((state.interviewed||!miss)?' ok':''); }
+  const pp = $('pill-post'); const pend = state.interviewed && !String(vals['Endorsement Status']||'').trim();
+  pp.textContent = !state.interviewed ? 'locked' : (pend ? 'to update' : 'ok'); pp.className = 'pill'+((state.interviewed&&!pend)?' ok':'');
+  $('save').textContent = tab==='int' ? 'Submit interview' : 'Save update';
+  $('save').disabled = tab==='int' ? state.interviewed : !state.interviewed;
+  $('jump').classList.toggle('hidden', tab!=='int' || state.interviewed || calm());
+  $('noans').classList.toggle('hidden', tab!=='int' || state.interviewed);
+  $('noans').disabled = naDoneThisVisit; $('noans').textContent = naDoneThisVisit ? 'No answer logged \u2713' : 'No answer';
+  $('status').textContent = tab==='int'
+    ? (calm() ? 'No answer logged | '+(state.attempts||1)+' call(s) so far'
+       : (state.interviewed ? 'Interview locked' : (miss ? miss+' required field(s) missing' : 'All required fields filled')) + (state.interviewed||!state.attempts?'':' | '+state.attempts+' call(s) logged'))
+    : (dirty?'Unsaved changes':'');
+}
+
+function jumpMissing(initial){
+  let target = null;
+  if(tab==='int') target = FIELDS.map((f,i)=>[f,i]).find(([f])=>f.tab==='int' && isMissing(f));
+  else if(state.interviewed) target = FIELDS.map((f,i)=>[f,i]).find(([f])=>f.tab==='post' && !f.note && !String(vals[f.k]||'').trim());
+  if(!target){ if(!initial) window.scrollTo({top:0,behavior:'smooth'}); return; }
+  const w = $(fid(target[0],target[1])); if(!w) return;
+  w.scrollIntoView({behavior:'smooth',block:'center'});
+  const i = w.querySelector('input,select,textarea'); if(i && !i.disabled) setTimeout(()=>i.focus({preventScroll:true}),350);
+}
+
+function setTab(t){ tab = t; render(true); }
+$('tab-int').onclick = ()=>setTab('int');
+$('tab-post').onclick = ()=>setTab('post');
+$('jump').onclick = ()=>jumpMissing(false);
+
+$('save').onclick = async ()=>{
+  const mode = tab==='int' ? 'interview' : 'post';
+  const editable = FIELDS.filter(f=>f.tab===tab && !isLocked(f) && !(f.moves && state.interviewed));
+  if(mode==='interview'){
+    if(!wantInterview){ wantInterview = true; refresh(); }
+    const m = editable.filter(isMissing);
+    if(m.length){ jumpMissing(false); return alert('Please fill in: ' + m.map(f=>f.k).join(', ')); }
+    if(!confirm('Submit this interview? The answers will be locked afterwards.\n\nIf the applicant did not answer, press Cancel and use the No answer button instead.')) return;
+  }
+  const values = {};
+  editable.forEach(f=>{
+    const now = String(vals[f.k] ?? '').trim(), was = f.note ? '' : normalize(f, rec[f.k]).trim();
+    if(mode==='interview'){ if(now) values[f.k] = now; }
+    else if(now !== was){ values[f.k] = now === '' ? null : now; }
+  });
+  if(mode==='post' && !Object.keys(values).length) return alert('Nothing changed yet.');
+  $('save').disabled = true; $('status').textContent = 'Saving...';
+  const j = await api('/ta-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({leadId:ctx.leadId,gid:ctx.gid,ssid:ctx.ssid,mode,values})});
+  if(!j.ok){ $('banner').innerHTML = '<div class="msg err">'+esc(j.error||'Save failed.')+'</div>'; window.scrollTo({top:0,behavior:'smooth'}); $('save').disabled=false; refresh(); popup('err', 'Not saved', j.error || 'Please try again.'); return; }
+  try{ localStorage.removeItem(draftKey()); }catch(e){}
+  dirty = false;
+  await load(true);
+  $('banner').innerHTML = '<div class="msg ok">'+esc(j.message||'Saved.')+' ('+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+')</div>';
+  window.scrollTo({top:0,behavior:'smooth'});
+  popup('ok', mode==='interview' ? 'Interview submitted' : 'Update saved', mode==='interview' ? 'Saved to the sheet and locked. Use the Post-interview tab for endorsement and orientation updates.' : 'Your changes are saved to the sheet.');
+};
+$('noans').onclick = async ()=>{
+  if(state.interviewed) return;
+  if(!confirm('Log a No answer call for this applicant?\n\nNothing gets locked. The interview stays open so you can fill it in when they respond.')) return;
+  const values = {};
+  FIELDS.filter(f=>f.tab==='int' && !isLocked(f)).forEach(f=>{ const now = String(vals[f.k] ?? '').trim(); if(now) values[f.k] = now; });
+  $('noans').disabled = true; $('save').disabled = true; $('status').textContent = 'Saving...';
+  const j = await api('/ta-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({leadId:ctx.leadId,gid:ctx.gid,ssid:ctx.ssid,mode:'noanswer',values})});
+  $('noans').disabled = false;
+  if(!j.ok){ $('banner').innerHTML = '<div class="msg err">'+esc(j.error||'Save failed.')+'</div>'; window.scrollTo({top:0,behavior:'smooth'}); refresh(); popup('err', 'Not saved', j.error || 'Please try again.'); return; }
+  dirty = false; wantInterview = false; naDoneThisVisit = true;
+  await load(true);
+  window.scrollTo({top:0,behavior:'smooth'});
+  const calls = state.attempts || 1;
+  popup('na', 'No answer saved', 'Call '+calls+' is logged in the sheet. You do not need to fill in or submit anything else. When the applicant responds, open this link again to do the interview.');
+};
+$('toast-ok').onclick = closePopup;
+$('toastbg').onclick = closePopup;
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopup(); });
+window.addEventListener('beforeunload',e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
+load();
+</script>
+</body>
+</html>
