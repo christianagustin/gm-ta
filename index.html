@@ -91,7 +91,7 @@ button.warn:disabled{opacity:.6;cursor:not-allowed}
 </div></div>
 
 <script>
-const API = window.TA_API_BASE || 'APPS_SCRIPT_EXEC_URL';
+const API = window.TA_API_BASE || 'https://script.google.com/macros/s/AKfycbzjaJqcvtwxxpdS984NGVSLvElxzZQ-h7cFvgPT1Tb0lNAAwZ9LfBDcRX8i399CjNEa/exec';
 const qs = new URLSearchParams(location.search);
 const ctx = { leadId: qs.get('leadId') || '', gid: qs.get('gid') || '', ssid: qs.get('ssid') || '' };
 
