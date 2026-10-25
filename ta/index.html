@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Leads · Global Mode</title>
+<style>
+:root{--navy:#14213d;--green:#1f9d63;--green-d:#177a4d;--bg:#f4f6fa;--card:#fff;--line:#dfe4ee;--txt:#1b2333;--mut:#667086;--red:#d64545;--amber:#b4820f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--navy);color:#fff;padding:16px}
+header .wrap,main{max-width:860px;margin:0 auto}
+h1{font-size:19px;margin:0}
+header small{color:#b9c3dc}
+.top{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+a.btn,button.btn{display:inline-flex;align-items:center;gap:6px;background:var(--green);color:#fff;text-decoration:none;border:0;border-radius:8px;padding:10px 14px;font:600 14px inherit;cursor:pointer}
+a.btn:hover{background:var(--green-d)}
+a.btn.ghost,button.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.35)}
+main{padding:16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font:600 13px inherit;cursor:pointer;color:var(--txt)}
+.tabs button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.tabs b{margin-left:4px}
+input.q{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;margin-bottom:12px}
+.lead{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.lead .who{flex:1;min-width:220px}
+.lead b{font-size:15.5px}
+.lead .meta{font-size:13px;color:var(--mut)}
+.lead .acts{display:flex;gap:6px;flex-wrap:wrap}
+.lead a.act{border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:600 13px inherit;text-decoration:none;color:var(--navy);background:#fff;white-space:nowrap}
+.lead a.act.main{background:var(--green);border-color:var(--green);color:#fff}
+.pill{display:inline-block;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:600;background:#eef1f6;color:var(--mut);margin-left:6px}
+.pill.warn{background:#fbf3e2;color:var(--amber)}
+.msg{padding:12px 14px;border-radius:8px;margin-bottom:14px;font-size:14px;background:#fdecec;color:#8c1f1f;border:1px solid #f3bcbc}
+.empty{color:var(--mut);text-align:center;padding:28px}
+.foot{font-size:12px;color:var(--mut);text-align:center;margin-top:10px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1 id="who">My Leads</h1>
+  <small>Every applicant assigned to you, with the interview form one tap away. Bookmark this page.</small>
+  <div class="top hidden" id="top">
+    <a class="btn" id="intake" target="_blank" rel="noopener">+ Add walk-in / own lead</a>
+    <a class="btn ghost" id="sheet" target="_blank" rel="noopener">Open my sheet</a>
+    <button class="btn ghost" id="reload" type="button">Refresh</button>
+  </div>
+</div></header>
+<main>
+  <div id="banner"></div>
+  <div id="app" class="hidden">
+    <div class="tabs" id="tabs"></div>
+    <input class="q" id="q" placeholder="Search name, number or Lead ID" aria-label="Search">
+    <div id="list"></div>
+    <div class="foot" id="fresh"></div>
+  </div>
+  <div class="empty" id="loading">Loading your leads…</div>
+</main>
+<script>
+(function () {
+  var API = 'https://script.google.com/macros/s/AKfycbzjaJqcvtwxxpdS984NGVSLvElxzZQ-h7cFvgPT1Tb0lNAAwZ9LfBDcRX8i399CjNEa/exec';
+  var qs = new URLSearchParams(location.search), TA = qs.get('ta') || '', K = qs.get('k') || '';
+  var GROUPS = [['open', 'To interview'], ['follow', 'After interview'], ['done', 'Done'], ['old', 'Older than 30 days'], ['closed', 'No answer x3']];
+  var HELP = { open: 'Call them, then tap Record Interview. If they don’t answer, use the No Answer button in the form (3 tries).',
+    follow: 'Interviewed. Tap Update Record after orientation or endorsement.', done: 'Endorsement result recorded.', closed: 'Reached 3 unanswered calls.', old: 'Assigned more than 30 days ago and never interviewed. Worth a try when your new leads are done.' };
+  var data = null, group = 'open';
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function load() {
+    $('loading').classList.remove('hidden');
+    fetch(API + '?action=ta&ta=' + encodeURIComponent(TA) + '&k=' + encodeURIComponent(K), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        $('loading').classList.add('hidden');
+        if (!d.ok) { $('banner').innerHTML = '<div class="msg">' + esc(d.error) + '</div>'; return; }
+        data = d;
+        $('who').textContent = 'My Leads · ' + d.name;
+        $('intake').href = d.intake; $('sheet').href = d.sheet;
+        $('top').classList.remove('hidden'); $('app').classList.remove('hidden');
+        $('fresh').textContent = 'Updated ' + new Date(d.generated_at).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' }) + ' · new leads show up within a few minutes';
+        draw();
+      })
+      .catch(function () { $('loading').classList.add('hidden'); $('banner').innerHTML = '<div class="msg">Couldn’t load your leads. Check your connection and tap Refresh.</div>'; });
+  }
+
+  function draw() {
+    var t = $('q').value.trim().toLowerCase(), d = t.replace(/\D/g, '');
+    $('tabs').innerHTML = GROUPS.map(function (g) {
+      var n = data.leads.filter(function (x) { return x.group === g[0]; }).length;
+      return '<button type="button" data-g="' + g[0] + '" class="' + (group === g[0] ? 'on' : '') + '">' + g[1] + '<b>' + n + '</b></button>';
+    }).join('');
+    var rows = data.leads.filter(function (x) {
+      if (t) return x.name.toLowerCase().indexOf(t) >= 0 || x.id.toLowerCase().indexOf(t) >= 0 || (d.length >= 3 && x.phone.replace(/\D/g, '').indexOf(d) >= 0);
+      return x.group === group;
+    });
+    $('list').innerHTML = (t ? '' : '<p class="meta" style="margin:0 0 10px;color:var(--mut);font-size:13px">' + HELP[group] + '</p>') +
+      (rows.length ? rows.slice(0, 200).map(function (x) {
+        var tel = x.phone.replace(/[^\d+]/g, '');
+        return '<div class="lead"><div class="who"><b>' + esc(x.name) + '</b>' +
+          (x.attempts && (x.group === 'open' || x.group === 'old') ? '<span class="pill warn">' + x.attempts + ' of 3 tries</span>' : '') +
+          (x.assessment ? '<span class="pill">' + esc(x.assessment) + '</span>' : '') +
+          '<div class="meta">' + esc(x.id) + ' · ' + esc(x.position || 'No position') + ' · assigned ' + esc(x.date) + (x.source ? ' · ' + esc(x.source) : '') + '</div>' +
+          (x.phone ? '<div class="meta"><a href="tel:' + esc(tel) + '" style="color:var(--navy);font-weight:600">' + esc(x.phone) + '</a></div>' : '') + '</div>' +
+          '<div class="acts">' +
+          (x.group === 'open' || x.group === 'old' || x.group === 'closed' ? '<a class="act main" target="_blank" rel="noopener" href="' + esc(x.int) + '">Record Interview</a>'
+            : '<a class="act" target="_blank" rel="noopener" href="' + esc(x.int) + '">View interview</a>') +
+          '<a class="act' + (x.group === 'follow' ? ' main' : '') + '" target="_blank" rel="noopener" href="' + esc(x.post) + '">Update Record</a>' +
+          '</div></div>';
+      }).join('') + (rows.length > 200 ? '<p class="empty">Showing the newest 200. Search to find others.</p>' : '')
+        : '<div class="empty">' + (t ? 'No lead matches “' + esc(t) + '”.' : 'Nothing here right now.') + '</div>');
+    document.querySelectorAll('#tabs button').forEach(function (b) { b.onclick = function () { group = b.dataset.g; $('q').value = ''; draw(); }; });
+  }
+
+  $('q').addEventListener('input', function () { if (data) draw(); });
+  $('reload').addEventListener('click', load);
+  if (!TA || !K) { $('loading').classList.add('hidden'); $('banner').innerHTML = '<div class="msg">This link is incomplete. Ask Ms. Chingky for your personal TA page link.</div>'; }
+  else load();
+})();
+</script>
+</body>
+</html>
