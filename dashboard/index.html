@@ -1217,7 +1217,7 @@ body.fullview .tp.on:first-of-type::before{border-top:none}
       '<th>TA</th><th>To interview</th><th>After interview</th><th>Older backlog</th><th>New this week</th><th>Personal page</th><th>Walk-in form</th><th>Sheet</th><th></th></tr></thead><tbody>' +
       TEAM.tas.map(function (t, i) {
         return '<tr style="' + (t.active ? '' : 'opacity:.55') + '"><td><b>' + xe(t.name) + '</b> <span class="tag' + (t.active ? ' g' : '') + '">' + (t.active ? 'Active' : 'Off rotation') + '</span></td>' +
-          '<td>' + t.open + '</td><td>' + t.follow + '</td><td style="color:var(--muted)">' + t.old + '</td><td>' + t.newWeek + '</td>' +
+          '<td>' + t.open + '</td><td>' + t.follow + '</td><td style="color:var(--muted)">' + (t.old || 0) + '</td><td>' + t.newWeek + '</td>' +
           '<td><a href="' + xe(t.page) + '" target="_blank" rel="noopener">Open</a> &nbsp;<button class="xbtn" data-copy="' + xe(t.page) + '">Copy link</button></td>' +
           '<td><a href="' + xe(t.intake) + '" target="_blank" rel="noopener">Open</a></td>' +
           '<td><a href="' + xe(t.sheet) + '" target="_blank" rel="noopener">Open</a></td>' +
